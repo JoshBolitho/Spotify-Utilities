@@ -1,0 +1,23 @@
+{
+  "name": "spotify-utilities",
+  "version": "1.0.0",
+  "description": "Provides a helpful set of tools for managing playlists.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoshBolitho/Spotify-Utilities.git"
+  },
+  "author": "Josh Bolitho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoshBolitho/Spotify-Utilities/issues"
+  },
+  "homepage": "https://github.com/JoshBolitho/Spotify-Utilities#readme",
+  "dependencies": {
+    "open": "^8.4.1",
+    "spotify-web-api-node": "^5.0.2"
+  }
+}
