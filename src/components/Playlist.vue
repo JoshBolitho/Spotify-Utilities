@@ -1,28 +1,41 @@
 <template>
     <div class="playlist-row">
-        <img :src="image" class="playlist-image" @error="imageError">
-        <span class="playlist-title">{{ title }}</span>
+        <label>
+            <input type="checkbox" :value="data.id" :checked="selected" @click="updateSelected">
+            <img :src="image" class="playlist-image" @error="imageError">
+            <span class="playlist-title">{{ title }}</span>
+        </label>
     </div>
 </template>
   
-  
+
 <script>
     export default {
-        props: ["data"],
+        data() {
+            return {
+                selected: false
+            }
+        },
+
+        props: ['data'],
 
         computed: {
-            title(){
+            title() {
                 return this.data.name;
             },
 
-            image(){
+            image() {
                 return this.data.images[0].url;
             }
-
         },
 
-        methods: {
-            imageError(event){
+        methods: {        
+            updateSelected() {
+                this.selected = !this.selected;
+                this.$emit('update:selected', {id: this.data.id, selected: this.selected} );
+            },
+
+            imageError(event) {
                 event.target.src = '../assets/logo.png';
             }
         }
@@ -31,6 +44,11 @@
 
 
 <style>
+    label input[type="checkbox"] {
+        margin-right: 16px;
+        transform: scale(3);
+    }
+    
     .playlist-row {
     display: flex;
     align-items: center;
