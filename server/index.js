@@ -1,6 +1,4 @@
 const express = require('express');
-var http = require('http');
-const url = require('url');
 var path = require('path');
 const open = require('open');
 var cors = require('cors');
@@ -18,7 +16,8 @@ var credentials = {
 
 var sessionSecret = Secrets.sessionSecret;
 
-//store user session data
+// Store user session data
+// TODO: Work out a better solution for this.
 var users = {};
 
 var scopes = [
@@ -61,21 +60,17 @@ function generateRandomString(length) {
 };
 
 
-
-// API routes
 app.get('/profile', async (req, res) => {
-    // console.log('getting /profile !!!');
-
-    //does the user have a session ID and does the session ID match one stored in users dictionary
+    // Does the user have a session ID and does the session ID match one stored in users dictionary
     if(req.session.sessionId && req.session.sessionId in users){
-        //does the session have access and refresh tokens?
+        // Does the session have access and refresh tokens?
         var userSession = users[req.session.sessionId];
         // console.log(userSession);
         if(userSession.access_token !== null && userSession.refresh_token !== null
             && userSession.access_token !== '' && userSession.refresh_token !== ''
             && userSession.access_token !== undefined && userSession.refresh_token !== undefined
         ){
-            //test the tokens by fetching "me" data. If successful, return the data. otherwise, return nothing.
+            // Test the tokens by fetching "me" data. If successful, return the data. otherwise, return nothing.
             var spotifyApi = new SpotifyWebApi(credentials);
             spotifyApi.setAccessToken(userSession.access_token);
             spotifyApi.setRefreshToken(userSession.refresh_token);
@@ -87,14 +82,14 @@ app.get('/profile', async (req, res) => {
             return;
         }
     }
-
     res.send({});
     return;
 });
 
+
 app.get('/login', function(req, res) {
 
-    //create a session, store the expected state
+    // Create a session, store the expected state
     var sessionId = generateRandomString(16);
     var state = generateRandomString(16);
 
@@ -112,6 +107,7 @@ app.get('/login', function(req, res) {
     res.send({authorizeURL: authorizeURL});
 
 });
+
 
 app.get('/callback', function(req, res){
 
@@ -145,7 +141,7 @@ app.get('/callback', function(req, res){
                 };
             }
 
-            //return to root
+            // Return to root
             res.redirect('/');
         });
     }
@@ -155,26 +151,25 @@ app.get('/callback', function(req, res){
 app.get('/playlists',async function(req,res){
 
     if(req.session.sessionId && req.session.sessionId in users){
-        //does the session have  access and refresh tokens?
+        // Does the session have  access and refresh tokens?
         var userSession = users[req.session.sessionId];
         // console.log(userSession);
         if(userSession.access_token !== null && userSession.refresh_token !== null
             && userSession.access_token !== '' && userSession.refresh_token !== ''
             && userSession.access_token !== undefined && userSession.refresh_token !== undefined
         ){   
-            //Start using the tokens
+            // Start using the tokens
             var spotifyApi = new SpotifyWebApi(credentials);
             spotifyApi.setAccessToken(userSession.access_token);
             spotifyApi.setRefreshToken(userSession.refresh_token);
 
-            //get playlists
-
-            //should only need to fetch user if userId is not defined yet
+            // Get playlists.
+            // Should only need to fetch user if userId is not defined yet
             var userId = users[req.session.sessionId].userId;
             if(userId === null || userId === undefined || userId === ''){
                 var user = await getUserData(spotifyApi);
                 userId = user.id;
-                //set the session data too
+                // Set the session data too
                 users[req.session.sessionId].userId = user.id;
             }
             
@@ -184,12 +179,11 @@ app.get('/playlists',async function(req,res){
 
             res.send(playlistData);
         }else{
-                //return some error -> not logged in
+                // Return some error -> not logged in
                 console.log('playlist error!');
             }
         }
 });
-
 
 
 async function getUserData(spotifyApi){
@@ -248,9 +242,9 @@ async function getUserPlaylists(userId, spotifyApi){
     return userPlaylists.body;
 }
 
-//Handles paginated results
+// Handles paginated results
 async function loadPlaylistTracks(playlistID, trackCount, spotifyApi){
-    //The most results we can get in a single page.
+    // The most results we can get in a single page.
     const pagingLimit = 50;
     var tracks = [];
 
