@@ -29,7 +29,7 @@
     export default {
         data() {
             return {
-                playlists: null,
+                playlists: [],
                 selectedPlaylists: []
             };
         },

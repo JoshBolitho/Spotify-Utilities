@@ -25,7 +25,10 @@
             },
 
             image() {
-                return this.data.images[0].url;
+                const myImage = this.data.images[0]; 
+                if(myImage !== undefined){
+                    return myImage.url;
+                }
             }
         },
 
