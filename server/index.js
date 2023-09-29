@@ -151,7 +151,7 @@ app.get('/callback', function(req, res){
 app.get('/playlists',async function(req,res){
 
     if(req.session.sessionId && req.session.sessionId in users){
-        // Does the session have  access and refresh tokens?
+        // Does the session have access and refresh tokens?
         var userSession = users[req.session.sessionId];
         // console.log(userSession);
         if(userSession.access_token !== null && userSession.refresh_token !== null
@@ -178,6 +178,32 @@ app.get('/playlists',async function(req,res){
             // console.log(playlistData);
 
             res.send(playlistData);
+        }else{
+                // Return some error -> not logged in
+                console.log('playlist error!');
+            }
+        }
+});
+
+
+app.get('/playlist',async function(req,res){
+
+    if(req.session.sessionId && req.session.sessionId in users){
+        // Does the session have access and refresh tokens?
+        var userSession = users[req.session.sessionId];
+        // console.log(userSession);
+        if(userSession.access_token !== null && userSession.refresh_token !== null
+            && userSession.access_token !== '' && userSession.refresh_token !== ''
+            && userSession.access_token !== undefined && userSession.refresh_token !== undefined
+        ){   
+            // Start using the tokens
+            var spotifyApi = new SpotifyWebApi(credentials);
+            spotifyApi.setAccessToken(userSession.access_token);
+            spotifyApi.setRefreshToken(userSession.refresh_token);
+
+            var playlist = await loadPlaylistTracks(req.query.playlist, spotifyApi)
+
+            res.send(playlist);
         }else{
                 // Return some error -> not logged in
                 console.log('playlist error!');
@@ -243,7 +269,12 @@ async function getUserPlaylists(userId, spotifyApi){
 }
 
 // Handles paginated results
-async function loadPlaylistTracks(playlistID, trackCount, spotifyApi){
+async function loadPlaylistTracks(playlistID, spotifyApi){
+    // Query the number of tracks in this playlist
+    const playlistData = await spotifyApi.getPlaylist(playlistID);
+    const trackCount = playlistData.body.tracks.total;
+    console.log(`playlist has ${trackCount} tracks`)
+
     // The most results we can get in a single page.
     const pagingLimit = 50;
     var tracks = [];

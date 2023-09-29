@@ -9,6 +9,7 @@
 </template>
   
 <script>
+
     export default {
         props: ["playlists"],
 
@@ -26,6 +27,8 @@
 
             backup() {
                 console.log('backing up');
+                this.$store.commit('setDataToPass', this.playlists)
+                this.$router.push({path: 'Backup'})
             }
         }
     }

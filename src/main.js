@@ -1,5 +1,19 @@
 import { createApp } from 'vue';
+import { createStore } from 'vuex';
 import App from './App.vue';
 import router from './router';
 
-createApp(App).use(router).mount('#app');
+const store = createStore({
+    state () {
+        return {
+            dataToPass: null
+        }
+    },
+    mutations: {
+        setDataToPass (state, data) {
+            state.dataToPass = data;
+        }
+    }
+  })
+
+createApp(App).use(router).use(store).mount('#app');
