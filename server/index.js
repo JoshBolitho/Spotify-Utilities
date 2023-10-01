@@ -201,8 +201,8 @@ app.get('/playlist',async function(req,res){
             spotifyApi.setAccessToken(userSession.access_token);
             spotifyApi.setRefreshToken(userSession.refresh_token);
 
-            var playlist = await loadPlaylistTracks(req.query.playlist, spotifyApi)
-
+            const playlist = await loadPlaylistTracks(req.query.playlist, spotifyApi)
+            
             res.send(playlist);
         }else{
                 // Return some error -> not logged in
@@ -273,7 +273,7 @@ async function loadPlaylistTracks(playlistID, spotifyApi){
     // Query the number of tracks in this playlist
     const playlistData = await spotifyApi.getPlaylist(playlistID);
     const trackCount = playlistData.body.tracks.total;
-    console.log(`playlist has ${trackCount} tracks`)
+    console.log(`playlist has ${trackCount} tracks`);
 
     // The most results we can get in a single page.
     const pagingLimit = 50;
@@ -287,7 +287,12 @@ async function loadPlaylistTracks(playlistID, spotifyApi){
         index += pagingLimit;
     }
 
-    return tracks;
+    const response = {
+        playlistData : playlistData.body,
+        tracks : tracks
+    }
+
+    return response;
 }
 
 
