@@ -1,17 +1,24 @@
 <template>
     <div>
-        <!-- <h1>Profile page</h1> -->
         <div>
             <h1>Welcome, {{ this.user.display_name }}</h1>
             <img :src="user.images[0].url">
         </div>
-        <!-- <h3>Selected playlists: {{ selectedPlaylists.toString() }}</h3> -->
 
         <ol class="leftPane">
-            <h2>Playlists</h2>
-            <li v-for="playlist in playlists.items">
-                <Playlist :data="playlist" @update:selected="handleUpdateSelected"/>
-            </li>
+            
+            <div v-if="playlistLoaded">
+                <h2>Playlists</h2>
+                <li v-for="playlist of playlists">
+                    <!-- <p>{{ playlist.name }} {{ playlist.id }} {{ playlist.images }}</p> -->
+                    <Playlist :data="playlist" @update:selected="handleUpdateSelected"/>
+                </li>
+            </div>
+    
+            <div v-if="!playlistLoaded">
+                <p>Playlists loading</p>
+            </div>
+            
         </ol>
 
         <div class="rightPane">
@@ -30,18 +37,20 @@
         data() {
             return {
                 playlists: [],
+                playlistLoaded: false,
                 selectedPlaylists: []
+
             };
         },
 
         methods:{
             handleUpdateSelected(event){
                 //clear all instances of id from the array
-                this.selectedPlaylists = this.selectedPlaylists.filter(item => item!==event.id);
+                this.selectedPlaylists = this.selectedPlaylists.filter(item => item.id!==event.id);
                 
                 // add id to array if the event specifies to add it.
                 if(event.selected){
-                    this.selectedPlaylists.push(event.id);
+                    this.selectedPlaylists.push({id: event.id, name: event.name});
                 }
             }
         },
@@ -50,10 +59,11 @@
 
         components: { Playlist, OptionsPane },
 
-        mounted() {
+        async mounted() {
             axios.get('/playlists').then(response => {
-                // console.log('playlist response: ' +  JSON.stringify(response.data) );
+                console.log
                 this.playlists = response.data;
+                this.playlistLoaded = true;
             })
             .catch(error => {
                 console.log("/playlists error: "+ error);

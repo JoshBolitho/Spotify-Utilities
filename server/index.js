@@ -44,11 +44,6 @@ app.use(express.static(path.resolve(__dirname+'/../dist/')));
 
 const port = process.env.PORT || 8888;
 
-// Middleware to parse incoming request bodies
-// app.use(express.urlencoded({ extended: true }));
-// app.use(express.json());
-
-
 function generateRandomString(length) {
     var string = '';
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -102,8 +97,6 @@ app.get('/login', function(req, res) {
     var spotifyApi = new SpotifyWebApi(credentials);
     var authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
 
-    // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8888');
-    // console.log(authorizeURL);
     res.send({authorizeURL: authorizeURL});
 
 });
@@ -201,7 +194,7 @@ app.get('/playlist',async function(req,res){
             spotifyApi.setAccessToken(userSession.access_token);
             spotifyApi.setRefreshToken(userSession.refresh_token);
 
-            const playlist = await loadPlaylistTracks(req.query.playlist, spotifyApi)
+            const playlist = await getPlaylistTracks(req.query.playlist, spotifyApi)
             
             res.send(playlist);
         }else{
@@ -219,57 +212,39 @@ async function getUserData(spotifyApi){
 
 
 async function getUserPlaylists(userId, spotifyApi){
-    // const userPlaylists = await spotifyApi.getUserPlaylists(userId,{ limit: 5000, offset: 0 });
-    // console.log(userPlaylists.body);
-    // console.log("-----------------------------------")
-    // for(const playlist of userPlaylists.body.items){
-    //     console.log("playlist id: " + playlist.id);
-    //     const playlistTracks = await spotifyApi.getPlaylistTracks(playlist.id);
-    //     // console.log(playlistTracks.body.items);
-    //     for(const track of playlistTracks.body.items){
-    //         console.log("##############");
-    //         console.log(track.track.name);
-    //         console.log(track.track.id);
-    //         console.log(track.track.duration_ms);
-    //     }
-    //     console.log("-----------------------------------")
-    // }
-    // console.log();
-    // console.log();
 
+    var playlists = [];
 
-    const userPlaylists = await spotifyApi.getUserPlaylists(userId,{ limit: 50, offset: 0 });
+    var nextPageURL = '';
+    var offset = 0;
 
-    // //compare user first 2 playlists
-    // const playlist1 = userPlaylists.body.items[0];
-    // const playlist2 = userPlaylists.body.items[1];
+    while(nextPageURL !== null && nextPageURL !== undefined && offset < 100) {//TODO remove the limit
+        const response = await spotifyApi.getUserPlaylists(userId, { limit: 50, offset: offset });
+        const responseItems = response.body?.items || [];
+
+        // Reduce the size of the returned object by only pulling out the needed fields.
+        const responsePlaylists = responseItems.map( (playlist) => {
+            return {
+                name : playlist.name,
+                id : playlist.id,
+                images : playlist.images
+            };
+        });
+
+        playlists = playlists.concat(responsePlaylists);
+        console.log(playlists.length)
+
+        // Fetch the link to the next page
+        nextPageURL = response.body?.next;
+        console.log(nextPageURL)
+        offset += 50;
+    }
     
-    // var playlist1Tracks = await loadPlaylistTracks(playlist1.id, playlist1.tracks.total);
-    // var playlist2Tracks = await loadPlaylistTracks(playlist2.id, playlist1.tracks.total);
-
-    // console.log("p1 length: "+playlist1Tracks.length);
-    // console.log("p2 length: "+playlist2Tracks.length);
-
-    // console.log("\nSongs in " +playlist1.name+ " that are also in " + playlist2.name);
-
-    // for(const p1_track of playlist1Tracks){
-        
-    //     for(const p2_track of playlist2Tracks){
-
-    //         if(compareTracks(p1_track, p2_track, {})){
-    //             console.log( p1_track.track.id + " : " + p1_track.track.name);
-    //             continue;
-    //         }
-
-    //     }
-
-    // }
-
-    return userPlaylists.body;
+    return playlists;
 }
 
 // Handles paginated results
-async function loadPlaylistTracks(playlistID, spotifyApi){
+async function getPlaylistTracks(playlistID, spotifyApi){
     // Query the number of tracks in this playlist
     const playlistData = await spotifyApi.getPlaylist(playlistID);
     const trackCount = playlistData.body.tracks.total;

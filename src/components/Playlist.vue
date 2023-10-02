@@ -25,9 +25,9 @@
             },
 
             image() {
-                const myImage = this.data.images[0]; 
-                if(myImage !== undefined){
-                    return myImage.url;
+                const myImages = this.data?.images;
+                if(myImages !== undefined){
+                    return myImages[0].url;
                 }
             }
         },
@@ -35,7 +35,7 @@
         methods: {        
             updateSelected() {
                 this.selected = !this.selected;
-                this.$emit('update:selected', {id: this.data.id, selected: this.selected} );
+                this.$emit('update:selected', {id: this.data.id, name: this.data.name, selected: this.selected} );
             },
 
             imageError(event) {
