@@ -10,6 +10,8 @@
   
 
 <script>
+    import defaultPlaylistImage from '../assets/defaultPlaylist.png';
+
     export default {
         data() {
             return {
@@ -26,9 +28,16 @@
 
             image() {
                 const myImages = this.data?.images;
-                if(myImages !== undefined){
-                    return myImages[0].url;
+                if (myImages === undefined || myImages === null) {
+                    return defaultPlaylistImage;
                 }
+
+                const myURL = myImages[0]?.url;
+                if (myURL === undefined || myURL === null || myURL === '') {
+                    return defaultPlaylistImage;
+                }
+
+                return myURL;
             }
         },
 
@@ -39,7 +48,7 @@
             },
 
             imageError(event) {
-                event.target.src = '../assets/logo.png';
+                event.target.src = defaultPlaylistImage;
             }
         }
     };

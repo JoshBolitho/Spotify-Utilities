@@ -60,7 +60,7 @@ app.get('/profile', async (req, res) => {
     if(req.session.sessionId && req.session.sessionId in users){
         // Does the session have access and refresh tokens?
         var userSession = users[req.session.sessionId];
-        // console.log(userSession);
+        
         if(userSession.access_token !== null && userSession.refresh_token !== null
             && userSession.access_token !== '' && userSession.refresh_token !== ''
             && userSession.access_token !== undefined && userSession.refresh_token !== undefined
@@ -71,7 +71,7 @@ app.get('/profile', async (req, res) => {
             spotifyApi.setRefreshToken(userSession.refresh_token);
 
             var user = await getUserData(spotifyApi);
-            // console.log(user);
+            
             users[req.session.sessionId].userId = user.id;
             res.send(user);
             return;
@@ -118,7 +118,6 @@ app.get('/callback', function(req, res){
         
         var spotifyApi = new SpotifyWebApi(credentials);
         spotifyApi.authorizationCodeGrant(code).then(async function(data){
-            // console.log(data);
 
             if(req.session.sessionId && req.session.sessionId in users){
                 // If session ID exists, add the tokens
@@ -146,7 +145,7 @@ app.get('/playlists',async function(req,res){
     if(req.session.sessionId && req.session.sessionId in users){
         // Does the session have access and refresh tokens?
         var userSession = users[req.session.sessionId];
-        // console.log(userSession);
+        
         if(userSession.access_token !== null && userSession.refresh_token !== null
             && userSession.access_token !== '' && userSession.refresh_token !== ''
             && userSession.access_token !== undefined && userSession.refresh_token !== undefined
@@ -156,7 +155,6 @@ app.get('/playlists',async function(req,res){
             spotifyApi.setAccessToken(userSession.access_token);
             spotifyApi.setRefreshToken(userSession.refresh_token);
 
-            // Get playlists.
             // Should only need to fetch user if userId is not defined yet
             var userId = users[req.session.sessionId].userId;
             if(userId === null || userId === undefined || userId === ''){
@@ -167,8 +165,6 @@ app.get('/playlists',async function(req,res){
             }
             
             var playlistData = await getUserPlaylists(userId, spotifyApi);
-
-            // console.log(playlistData);
 
             res.send(playlistData);
         }else{
@@ -184,7 +180,7 @@ app.get('/playlist',async function(req,res){
     if(req.session.sessionId && req.session.sessionId in users){
         // Does the session have access and refresh tokens?
         var userSession = users[req.session.sessionId];
-        // console.log(userSession);
+        
         if(userSession.access_token !== null && userSession.refresh_token !== null
             && userSession.access_token !== '' && userSession.refresh_token !== ''
             && userSession.access_token !== undefined && userSession.refresh_token !== undefined
@@ -218,7 +214,7 @@ async function getUserPlaylists(userId, spotifyApi){
     var nextPageURL = '';
     var offset = 0;
 
-    while(nextPageURL !== null && nextPageURL !== undefined && offset < 100) {//TODO remove the limit
+    while(nextPageURL !== null && nextPageURL !== undefined && offset < 500) {
         const response = await spotifyApi.getUserPlaylists(userId, { limit: 50, offset: offset });
         const responseItems = response.body?.items || [];
 
@@ -232,11 +228,9 @@ async function getUserPlaylists(userId, spotifyApi){
         });
 
         playlists = playlists.concat(responsePlaylists);
-        console.log(playlists.length)
 
         // Fetch the link to the next page
         nextPageURL = response.body?.next;
-        console.log(nextPageURL)
         offset += 50;
     }
     
@@ -248,7 +242,7 @@ async function getPlaylistTracks(playlistID, spotifyApi){
     // Query the number of tracks in this playlist
     const playlistData = await spotifyApi.getPlaylist(playlistID);
     const trackCount = playlistData.body.tracks.total;
-    console.log(`playlist has ${trackCount} tracks`);
+    // console.log(`playlist has ${trackCount} tracks`);
 
     // The most results we can get in a single page.
     const pagingLimit = 50;
@@ -256,7 +250,7 @@ async function getPlaylistTracks(playlistID, spotifyApi){
 
     var index = 0;
     while(index < trackCount){
-        console.log("fetching playlist "+playlistID+" from index "+index);
+        // console.log("fetching playlist "+playlistID+" from index "+index);
         const pagedTracks = await spotifyApi.getPlaylistTracks(playlistID,{ limit: pagingLimit, offset: index });
         tracks = tracks.concat(pagedTracks.body.items);
         index += pagingLimit;
